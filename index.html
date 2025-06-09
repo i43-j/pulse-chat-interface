@@ -1,24 +1,381 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pulse-chat-interface</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        // Tailwind CSS configuration
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-green': {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'slide-up': 'slideUp 0.2s ease-out',
+                        'pulse-dots': 'pulseDots 1.4s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        pulseDots: {
+                            '0%, 80%, 100%': { transform: 'scale(0)' },
+                            '40%': { transform: 'scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scroll shadow */
+        .scroll-shadow {
+            background: 
+                linear-gradient(white 30%, rgba(255,255,255,0)),
+                linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+                radial-gradient(50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
+                radial-gradient(50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+            background-repeat: no-repeat;
+            background-color: white;
+            background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+            background-attachment: local, local, scroll, scroll;
+        }
+        
+        .dark .scroll-shadow {
+            background: 
+                linear-gradient(rgb(17 24 39) 30%, rgba(17,24,39,0)),
+                linear-gradient(rgba(17,24,39,0), rgb(17 24 39) 70%) 0 100%,
+                radial-gradient(50% 0, rgba(255,255,255,.1), rgba(255,255,255,0)),
+                radial-gradient(50% 100%, rgba(255,255,255,.1), rgba(255,255,255,0)) 0 100%;
+            background-repeat: no-repeat;
+            background-color: rgb(17 24 39);
+            background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+            background-attachment: local, local, scroll, scroll;
+        }
 
-    <meta property="og:title" content="pulse-chat-interface" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        /* Loading dots animation */
+        .loading-dot {
+            animation: pulseDots 1.4s ease-in-out infinite;
+        }
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 transition-colors duration-300">
+    <!-- Main Chat Container -->
+    <div 
+        x-data="chatApp()" 
+        x-init="init()"
+        class="h-screen flex flex-col max-w-2xl mx-auto bg-white dark:bg-gray-900 transition-colors duration-300"
+    >
+        <!-- Header with Dark Mode Toggle -->
+        <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Chat Assistant</h1>
+            <button 
+                @click="toggleDarkMode()"
+                class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Toggle dark mode"
+            >
+                <svg x-show="!isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+                <svg x-show="isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </button>
+        </header>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        <!-- Messages Container -->
+        <main 
+            class="flex-1 overflow-y-auto scroll-shadow px-4 py-6 space-y-4"
+            x-ref="messagesContainer"
+        >
+            <!-- Welcome Message -->
+            <div x-show="messages.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                <p class="text-lg">Welcome! Start a conversation by typing a message below.</p>
+            </div>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+            <!-- Message List -->
+            <template x-for="(message, index) in messages" :key="index">
+                <div 
+                    class="animate-fade-in animate-slide-up"
+                    :class="message.type === 'user' ? 'flex justify-end' : 'flex justify-start'"
+                >
+                    <div class="max-w-xs sm:max-w-md">
+                        <!-- Message Bubble -->
+                        <div 
+                            class="px-4 py-3 rounded-2xl shadow-sm"
+                            :class="message.type === 'user' 
+                                ? 'bg-gradient-to-r from-brand-green-500 to-brand-green-600 text-white' 
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'"
+                        >
+                            <!-- Loading State for Bot -->
+                            <template x-if="message.type === 'bot' && message.isLoading">
+                                <div class="flex space-x-1" aria-label="Loading response">
+                                    <div class="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full loading-dot"></div>
+                                    <div class="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full loading-dot"></div>
+                                    <div class="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full loading-dot"></div>
+                                </div>
+                            </template>
+                            
+                            <!-- Error State -->
+                            <template x-if="message.type === 'bot' && message.isError">
+                                <div>
+                                    <p class="text-red-600 dark:text-red-400 mb-2">Sorry, I encountered an error. Please try again.</p>
+                                    <button 
+                                        @click="retryMessage(index)"
+                                        class="text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-3 py-1 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200 min-h-[44px] min-w-[44px]"
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            </template>
+                            
+                            <!-- Normal Message Content -->
+                            <template x-if="!message.isLoading && !message.isError">
+                                <p x-text="message.text" class="leading-relaxed"></p>
+                            </template>
+                        </div>
+                        
+                        <!-- Timestamp -->
+                        <div 
+                            class="text-xs text-gray-400 dark:text-gray-500 mt-1 px-2"
+                            :class="message.type === 'user' ? 'text-right' : 'text-left'"
+                            x-text="formatTime(message.timestamp)"
+                        ></div>
+                    </div>
+                </div>
+            </template>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <form @submit.prevent="sendMessage()" class="flex gap-3">
+                <input 
+                    type="text"
+                    x-model="currentMessage"
+                    x-ref="messageInput"
+                    placeholder="Type your message..."
+                    class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-green-500 focus:border-transparent transition-colors duration-200 min-h-[44px]"
+                    :disabled="isLoading"
+                    @keydown.enter="sendMessage()"
+                />
+                <button 
+                    type="submit"
+                    :disabled="!currentMessage.trim() || isLoading"
+                    class="px-6 py-3 bg-brand-green-500 hover:bg-brand-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-colors duration-200 flex items-center justify-center min-w-[44px] min-h-[44px]"
+                    aria-label="Send message"
+                >
+                    <svg x-show="!isLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <div x-show="isLoading" class="flex space-x-1">
+                        <div class="w-2 h-2 bg-white rounded-full loading-dot"></div>
+                        <div class="w-2 h-2 bg-white rounded-full loading-dot"></div>
+                        <div class="w-2 h-2 bg-white rounded-full loading-dot"></div>
+                    </div>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        function chatApp() {
+            return {
+                // Webhook URL - replace with your actual endpoint
+                WEBHOOK_URL: 'https://your-api-endpoint.com/webhook',
+                
+                // App state
+                messages: [],
+                currentMessage: '',
+                isLoading: false,
+                isDark: false,
+                
+                // Initialize the app
+                init() {
+                    // Check for saved dark mode preference
+                    this.isDark = localStorage.getItem('darkMode') === 'true' || 
+                                  (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    this.applyDarkMode();
+                    
+                    // Focus the input field
+                    this.$nextTick(() => {
+                        this.$refs.messageInput.focus();
+                    });
+                },
+                
+                // Toggle dark mode
+                toggleDarkMode() {
+                    this.isDark = !this.isDark;
+                    localStorage.setItem('darkMode', this.isDark);
+                    this.applyDarkMode();
+                },
+                
+                // Apply dark mode to document
+                applyDarkMode() {
+                    if (this.isDark) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+                
+                // Send message to webhook
+                async sendMessage() {
+                    const messageText = this.currentMessage.trim();
+                    if (!messageText || this.isLoading) return;
+                    
+                    // Add user message
+                    const userMessage = {
+                        type: 'user',
+                        text: messageText,
+                        timestamp: new Date()
+                    };
+                    this.messages.push(userMessage);
+                    
+                    // Clear input and set loading state
+                    this.currentMessage = '';
+                    this.isLoading = true;
+                    
+                    // Add bot loading message
+                    const botMessage = {
+                        type: 'bot',
+                        text: '',
+                        timestamp: new Date(),
+                        isLoading: true,
+                        isError: false
+                    };
+                    this.messages.push(botMessage);
+                    
+                    // Scroll to bottom
+                    this.scrollToBottom();
+                    
+                    try {
+                        // Make API request
+                        const response = await fetch(this.WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ text: messageText })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Extract response text (answer or output field)
+                        const responseText = data.answer ?? data.output ?? 'No response received';
+                        
+                        // Update bot message
+                        const lastMessage = this.messages[this.messages.length - 1];
+                        lastMessage.text = responseText;
+                        lastMessage.isLoading = false;
+                        lastMessage.timestamp = new Date();
+                        
+                    } catch (error) {
+                        console.error('Error sending message:', error);
+                        
+                        // Update bot message with error state
+                        const lastMessage = this.messages[this.messages.length - 1];
+                        lastMessage.isLoading = false;
+                        lastMessage.isError = true;
+                        lastMessage.originalText = messageText; // Store for retry
+                    }
+                    
+                    // Reset loading state and focus input
+                    this.isLoading = false;
+                    this.$nextTick(() => {
+                        this.$refs.messageInput.focus();
+                        this.scrollToBottom();
+                    });
+                },
+                
+                // Retry failed message
+                async retryMessage(messageIndex) {
+                    const message = this.messages[messageIndex];
+                    if (message.type !== 'bot' || !message.isError) return;
+                    
+                    // Get the original user message
+                    const userMessage = this.messages[messageIndex - 1];
+                    if (!userMessage || userMessage.type !== 'user') return;
+                    
+                    // Reset message state
+                    message.isError = false;
+                    message.isLoading = true;
+                    this.isLoading = true;
+                    
+                    try {
+                        const response = await fetch(this.WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ text: userMessage.text })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        const responseText = data.answer ?? data.output ?? 'No response received';
+                        
+                        message.text = responseText;
+                        message.isLoading = false;
+                        message.timestamp = new Date();
+                        
+                    } catch (error) {
+                        console.error('Error retrying message:', error);
+                        message.isLoading = false;
+                        message.isError = true;
+                    }
+                    
+                    this.isLoading = false;
+                    this.$nextTick(() => {
+                        this.$refs.messageInput.focus();
+                    });
+                },
+                
+                // Format timestamp
+                formatTime(timestamp) {
+                    return new Intl.DateTimeFormat('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    }).format(timestamp);
+                },
+                
+                // Scroll to bottom of messages
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$refs.messagesContainer;
+                        container.scrollTop = container.scrollHeight;
+                    });
+                }
+            }
+        }
+    </script>
+</body>
 </html>
