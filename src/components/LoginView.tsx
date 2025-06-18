@@ -49,13 +49,17 @@ export const LoginView = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="h-screen flex flex-col relative bg-white dark:bg-gray-900 transition-colors duration-300">
+      {/* Blurred Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-900 opacity-50"></div>
+      <div className="absolute inset-0 backdrop-blur-sm"></div>
+      
       {/* Header with Dark Mode Toggle */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <header className="relative z-10 flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50 backdrop-blur-md bg-white/30 dark:bg-gray-900/30">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Chat Assistant</h1>
         <button 
           onClick={toggleDarkMode}
-          className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="p-2 rounded-lg bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-gray-700/70 transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center backdrop-blur-sm"
           aria-label="Toggle dark mode"
         >
           {isDark ? (
@@ -71,9 +75,9 @@ export const LoginView = () => {
       </header>
 
       {/* Login Form */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-8 rounded-2xl border border-white/20 dark:border-gray-700/20 shadow-xl">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Welcome Back</h2>
               <p className="text-gray-600 dark:text-gray-400 mt-2">Please sign in to continue</p>
@@ -90,7 +94,7 @@ export const LoginView = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300/50 dark:border-gray-600/50 rounded-xl bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
                   required
                   disabled={loading}
                 />
@@ -106,7 +110,7 @@ export const LoginView = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300/50 dark:border-gray-600/50 rounded-xl bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
                   required
                   disabled={loading}
                 />
@@ -115,7 +119,7 @@ export const LoginView = () => {
               <button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 dark:disabled:from-gray-700 dark:disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-h-[44px] font-medium"
+                className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 dark:disabled:from-gray-700 dark:disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-h-[44px] font-medium shadow-lg"
               >
                 {loading ? (
                   <div className="flex space-x-1">
